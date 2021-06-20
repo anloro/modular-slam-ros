@@ -10,12 +10,10 @@
 
 
 anloro::WorldModelInterface anloro::LandMarkSub::_interface = anloro::WorldModelInterface();
+// anloro::Transform anloro::LandMarkSub::_CameraToBaseTf;
 
 void anloro::LandMarkSub::ProcessLandMark_cb(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg)
 {
-
-    // std::cout << "Odometry message received!" << std::endl;
-
 
     int length = msg->detections.size(); 
     for (int i = 0; i < length; i++) 
@@ -26,7 +24,7 @@ void anloro::LandMarkSub::ProcessLandMark_cb(const apriltag_ros::AprilTagDetecti
         // Get the pose information 
         x = msg->detections[i].pose.pose.pose.position.x;
         y = msg->detections[i].pose.pose.pose.position.y;
-        z = msg->detections[i].pose.pose.pose.position.x;
+        z = msg->detections[i].pose.pose.pose.position.z;
         qx = msg->detections[i].pose.pose.pose.orientation.x;
         qy = msg->detections[i].pose.pose.pose.orientation.y;
         qz = msg->detections[i].pose.pose.pose.orientation.z;
@@ -41,7 +39,22 @@ void anloro::LandMarkSub::ProcessLandMark_cb(const apriltag_ros::AprilTagDetecti
 
         Transform transform = Transform(x, y, z, qx, qy, qz, qw);
 
-        _interface.AddLandMark(id, transform, sigmaX, sigmaY, sigmaZ, sigmaRoll, sigmaPitch, sigmaYaw);
+        // std::cout << "Obtained transform from april: " << x << " " << y << " " << z << std::endl;
+        // std::cout << "Relative transform: " << std::endl;
+        Transform CameraToBaseTf = Transform(-0.047, 0.107, -0.069, 0.500, -0.500, 0.500, 0.500);
+        CameraToBaseTf.GetTranslationalAndEulerAngles(x, y, z, qx, qy, qz);
+        // std::cout << "In quaternions: " << x << " " << y << " " << z << " " << qx << " " << qy << " " << qz << std::endl;
+        // std::cout << "//////////////////////////////////////////////" << std::endl;
+
+
+        Transform t = Transform(CameraToBaseTf.inverse().ToMatrix4f() * transform.ToMatrix4f());
+        t.GetTranslationalAndEulerAngles(x, y, z, qx, qy, qz);
+        // std::cout << "Inverse x: " << x << " " << y << " " << z << " " << qx << " " << qy << " " << qz << std::endl;
+
+        // std::cout << "---------------------------------------------" << std::endl;
+
+
+        _interface.AddLandMark(id, t, sigmaX, sigmaY, sigmaZ, sigmaRoll, sigmaPitch, sigmaYaw);
 
     }   
 

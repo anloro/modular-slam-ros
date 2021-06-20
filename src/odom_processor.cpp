@@ -1,7 +1,8 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "OdometrySub.h"
-
+#include "LandMarkSub.h"
+// #include <tf/transform_listener.h>
 
 int main(int argc, char **argv)
 {
@@ -25,8 +26,29 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
 
 // Create the interface to the modular slam framework
-    anloro::OdometrySub mySub;
+    anloro::OdometrySub odomSub;
+    anloro::LandMarkSub landMarkSub;
 
+
+  // tf::TransformListener listener;
+  // tf::StampedTransform transform;
+  // try{
+  //   listener.lookupTransform("/camera", "/base_link",  
+  //                             ros::Time(0), transform);
+  //   float x, y, z, qx, qy, qz, qw;
+  //   x = transform.getOrigin().x();
+  //   y = transform.getOrigin().y();
+  //   z = transform.getOrigin().z();
+  //   qx = transform.getRotation().x();
+  //   qy = transform.getRotation().y();
+  //   qz = transform.getRotation().z();
+  //   qw = transform.getRotation().getW();
+  //   anloro::LandMarkSub::_CameraToBaseTf = anloro::Transform(x, y, z, qx, qy, qz, qw);
+
+  // }
+  // catch (tf::TransformException ex){
+  //   ROS_ERROR("%s",ex.what());
+  // }
 
   /**
    * The subscribe() call is how you tell ROS that you want to receive messages
@@ -43,7 +65,8 @@ int main(int argc, char **argv)
    * is the number of messages that will be buffered up before beginning to throw
    * away the oldest ones.
    */
-  ros::Subscriber sub = n.subscribe("odom", 1000, mySub.ProcessOdom_cb);
+  ros::Subscriber subOdom = n.subscribe("odom", 1000, odomSub.ProcessOdom_cb);
+  ros::Subscriber subLandMark = n.subscribe("tag_detections", 1000, landMarkSub.ProcessLandMark_cb);
 
   /**
    * ros::spin() will enter a loop, pumping callbacks.  With this version, all

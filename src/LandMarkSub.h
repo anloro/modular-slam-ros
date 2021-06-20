@@ -20,6 +20,7 @@ public:
 
     // Member functions
     static void ProcessLandMark_cb(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg);
+    // static anloro::Transform _CameraToBaseTf;
 
 protected:
     static anloro::WorldModelInterface _interface;

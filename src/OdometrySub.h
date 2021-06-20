@@ -23,9 +23,11 @@ public:
     static void ProcessOdom_cb(const nav_msgs::Odometry::ConstPtr& msg);
 
 protected:
-    static anloro::WorldModelInterface _interface;
+    static WorldModelInterface _interface;
     static int _currentId;
     static int _previousId;
+    static Transform _lastOdomPose;
+    static float _lastOdomTime;
 };
 
 } // namespace anloro
