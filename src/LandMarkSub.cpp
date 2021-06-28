@@ -42,19 +42,27 @@ void anloro::LandMarkSub::ProcessLandMark_cb(const apriltag_ros::AprilTagDetecti
         // std::cout << "Obtained transform from april: " << x << " " << y << " " << z << std::endl;
         // std::cout << "Relative transform: " << std::endl;
         Transform CameraToBaseTf = Transform(-0.047, 0.107, -0.069, 0.500, -0.500, 0.500, 0.500);
-        CameraToBaseTf.GetTranslationalAndEulerAngles(x, y, z, qx, qy, qz);
+        // CameraToBaseTf.GetTranslationalAndEulerAngles(x, y, z, qx, qy, qz);
         // std::cout << "In quaternions: " << x << " " << y << " " << z << " " << qx << " " << qy << " " << qz << std::endl;
         // std::cout << "//////////////////////////////////////////////" << std::endl;
 
 
-        Transform t = Transform(CameraToBaseTf.inverse().ToMatrix4f() * transform.ToMatrix4f());
-        t.GetTranslationalAndEulerAngles(x, y, z, qx, qy, qz);
-        // std::cout << "Inverse x: " << x << " " << y << " " << z << " " << qx << " " << qy << " " << qz << std::endl;
+        Transform t = Transform(CameraToBaseTf.inverse() * transform);
+        // std::cout << "AprilTag relative pose base frame custom: \n" << t.ToMatrix4f() << std::endl;
 
         // std::cout << "---------------------------------------------" << std::endl;
 
+        t.GetTranslationalAndEulerAngles(x, y, z, qx, qy, qz);
+        float distance = std::sqrt(x*x + y*y);
+        // std::cout << "INFO: distance to april tag " << distance << std::endl;
+        // std::cout << "INFO: transform \n" << t.ToMatrix4f() << std::endl;
 
-        _interface.AddLandMark(id, t, sigmaX, sigmaY, sigmaZ, sigmaRoll, sigmaPitch, sigmaYaw);
+        // if(abs(y) < 0.5)
+        // if (true)
+        if (distance < 10)
+        {
+            _interface.AddLandMark(id, t, sigmaX, sigmaY, sigmaZ, sigmaRoll, sigmaPitch, sigmaYaw);
+        }
 
     }   
 

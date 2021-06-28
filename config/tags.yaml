@@ -16,14 +16,21 @@
 #   [
 #     {id: ID, size: SIZE, name: NAME},
 #     ...
-#   ]
+#   ] 
 standalone_tags:
   [
-    {id: 0, size: 1.0, name: Apriltag36_11_00000},
-    {id: 1, size: 1.0, name: Apriltag36_11_00001},
-    {id: 2, size: 1.0, name: Apriltag36_11_00002},
-    {id: 3, size: 1.0, name: Apriltag36_11_00003},
-    {id: 4, size: 1.0, name: Apriltag36_11_00004}
+    {id: 0, size: 0.8, name: Apriltag36_11_00000},
+    {id: 1, size: 0.8, name: Apriltag36_11_00001},
+    # {id: 2, size: 0.8, name: Apriltag36_11_00002},
+    # {id: 3, size: 0.8, name: Apriltag36_11_00003},
+    # {id: 4, size: 0.8, name: Apriltag36_11_00004},
+    {id: 5, size: 0.8, name: Apriltag36_11_00005},
+    {id: 6, size: 0.8, name: Apriltag36_11_00006},
+    {id: 7, size: 0.8, name: Apriltag36_11_00007},
+    {id: 8, size: 0.8, name: Apriltag36_11_00008},
+    {id: 9, size: 0.8, name: Apriltag36_11_00009},
+    {id: 10, size: 0.8, name: Apriltag36_11_000010},
+    {id: 11, size: 0.8, name: Apriltag36_11_000011}
   ]
 # ## Tag bundle definitions
 # ### Remarks

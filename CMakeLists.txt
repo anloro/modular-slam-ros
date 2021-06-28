@@ -129,13 +129,37 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
+add_executable(${PROJECT_NAME}_odomWithLm_processor 
+
+  src/odomWithLm_processor.cpp
+  src/OdometrySub.h
+  src/OdometrySub.cpp
+  src/LandMarkSub.h
+  src/LandMarkSub.cpp
+)
+
+add_executable(${PROJECT_NAME}_odomWithLm_processor_drifted
+
+  src/odomWithLm_processor_drifted.cpp
+  src/OdometrySub_drifted.h
+  src/OdometrySub_drifted.cpp
+  src/LandMarkSub.h
+  src/LandMarkSub.cpp
+)
+
+
+add_executable(${PROJECT_NAME}_odomDrift_processor 
+
+  src/odom_processor_drifted.cpp
+  src/OdometrySub_drifted.h
+  src/OdometrySub_drifted.cpp
+)
+
 add_executable(${PROJECT_NAME}_odom_processor 
 
   src/odom_processor.cpp
   src/OdometrySub.h
   src/OdometrySub.cpp
-  src/LandMarkSub.h
-  src/LandMarkSub.cpp
 )
 
 add_executable(${PROJECT_NAME}_landmark_processor 
@@ -158,6 +182,21 @@ add_executable(${PROJECT_NAME}_landmark_processor
 ## Specify libraries to link a library or executable target against
 find_package(modularslam 1.2.3 CONFIG REQUIRED)
 find_package(Eigen3 3.3 REQUIRED)
+
+target_link_libraries(${PROJECT_NAME}_odomWithLm_processor
+  ${catkin_LIBRARIES}
+  modularslam::modularslam
+)
+
+target_link_libraries(${PROJECT_NAME}_odomWithLm_processor_drifted
+  ${catkin_LIBRARIES}
+  modularslam::modularslam
+)
+
+target_link_libraries(${PROJECT_NAME}_odomDrift_processor
+  ${catkin_LIBRARIES}
+  modularslam::modularslam
+)
 
 target_link_libraries(${PROJECT_NAME}_odom_processor
   ${catkin_LIBRARIES}

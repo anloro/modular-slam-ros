@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
-#include "OdometrySub.h"
+#include "OdometrySub_drifted.h"
+#include "LandMarkSub.h"
 // #include <tf/transform_listener.h>
 
 int main(int argc, char **argv)
@@ -25,7 +26,9 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
 
 // Create the interface to the modular slam framework
-    anloro::OdometrySub odomSub;
+    anloro::OdometrySub_drifted odomSub;
+    anloro::LandMarkSub landMarkSub;
+
 
   // tf::TransformListener listener;
   // tf::StampedTransform transform;
@@ -63,6 +66,7 @@ int main(int argc, char **argv)
    * away the oldest ones.
    */
   ros::Subscriber subOdom = n.subscribe("odom", 1000, odomSub.ProcessOdom_cb);
+  ros::Subscriber subLandMark = n.subscribe("tag_detections", 1000, landMarkSub.ProcessLandMark_cb);
 
   /**
    * ros::spin() will enter a loop, pumping callbacks.  With this version, all

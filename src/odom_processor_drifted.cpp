@@ -1,6 +1,6 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
-#include "OdometrySub.h"
+#include "OdometrySub_drifted.h"
 // #include <tf/transform_listener.h>
 
 int main(int argc, char **argv)
@@ -25,7 +25,7 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
 
 // Create the interface to the modular slam framework
-    anloro::OdometrySub odomSub;
+    anloro::OdometrySub_drifted odomSub;
 
   // tf::TransformListener listener;
   // tf::StampedTransform transform;
