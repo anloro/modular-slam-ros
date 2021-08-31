@@ -9,6 +9,7 @@
 
 #include "apriltag_ros/AprilTagDetectionArray.h"
 #include "/usr/local/include/modularslam/WorldModelInterface.h"
+#include "modular_slam/SavePosesRaw.h"
 
 namespace anloro{
 
@@ -19,7 +20,10 @@ public:
     LandMarkSub() = default;
 
     // Member functions
+    static void TestWithAngle(Transform t, float angle);
     static void ProcessLandMark_cb(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg);
+    static bool SavePosesRaw(modular_slam::SavePosesRaw::Request  &req,
+                             modular_slam::SavePosesRaw::Response &res);
     // static anloro::Transform _CameraToBaseTf;
 
 protected:

@@ -1,9 +1,11 @@
 <launch>
   <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
-  <arg name="x_pos" default="-0.0"/>
-  <arg name="y_pos" default="-0.0"/>
+  <arg name="x_pos" default="0.0"/>
+  <arg name="y_pos" default="0.0"/>
   <arg name="z_pos" default="0.0"/>
-  <arg name="world" default="willow_with_tags" doc="model type [willow_with_tags, house_with_tags]"/>
+  <!-- <arg name="yaw" default="1.5707963267949"/> -->
+  <arg name="yaw" default="0"/>
+  <arg name="world" default="worldv3" doc="model type [worldv3, worldv2, willow_with_tags, house_with_tags]"/>
   <arg name="multi_robot_name" default=""/>
 
 <!-- Gazebo -->
@@ -18,21 +20,21 @@
 
   <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
 
-  <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model turtlebot3_$(arg model) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
+  <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model turtlebot3_$(arg model) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -Y $(arg yaw) -param robot_description" />
 
 <!-- Bringup -->
-  <!-- <include file="$(find turtlebot3_bringup)/launch/includes/description.launch.xml">
+  <include file="$(find turtlebot3_bringup)/launch/includes/description.launch.xml">
     <arg name="model" value="$(arg model)" />
-  </include> -->
+  </include>
 
   <arg name="urdf_file" default="$(find xacro)/xacro --inorder '$(find modular_slam)/model/turtlebot3_waffle.urdf.xacro'" />
   <param name="unmatched_robot_description" command="$(arg urdf_file)" />
 
-  <!-- <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
     <remap from="robot_description" to="unmatched_robot_description" />
     <param name="publish_frequency" type="double" value="50.0" />
     <param name="tf_prefix" value="$(arg multi_robot_name)"/>
-  </node> -->
+  </node>
 
 <!-- Camera image rectifier -->
   <arg name="manager" default="image_manager" /> <!-- Must be globally qualified -->

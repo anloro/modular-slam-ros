@@ -93,7 +93,8 @@ void anloro::OdometrySub::ProcessOdom_cb(const nav_msgs::Odometry::ConstPtr& msg
             float distance = std::sqrt(x*x + y*y);
 
             // Check if the robot moved a certain distance from the previous odom node
-            if (distance > 0.2)
+            // if (distance > 0.2)
+            if (true)
             {
                 // std::cout << "Previous Transform: \n" << _lastOdomPose.ToMatrix4f() << std::endl;
                 // std::cout << "Transform: \n" << transform.ToMatrix4f() << std::endl;
@@ -113,4 +114,13 @@ void anloro::OdometrySub::ProcessOdom_cb(const nav_msgs::Odometry::ConstPtr& msg
         }
     }
 
+}
+
+bool anloro::OdometrySub::SavePosesRaw(modular_slam::SavePosesRaw::Request  &req,
+                                       modular_slam::SavePosesRaw::Response &res)
+{
+    std::string name = req.name; 
+    _interface.SavePosesRaw(name);
+    res.response = "Raw poses saved to " + name;
+    return true;
 }

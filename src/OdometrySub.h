@@ -9,6 +9,7 @@
 
 #include "nav_msgs/Odometry.h"
 #include "/usr/local/include/modularslam/WorldModelInterface.h"
+#include "modular_slam/SavePosesRaw.h"
 
 namespace anloro{
 
@@ -21,6 +22,8 @@ public:
     // Member functions
     static void UpdateId();
     static void ProcessOdom_cb(const nav_msgs::Odometry::ConstPtr& msg);
+    static bool SavePosesRaw(modular_slam::SavePosesRaw::Request  &req,
+                             modular_slam::SavePosesRaw::Response &res);
 
 protected:
     static WorldModelInterface _interface;

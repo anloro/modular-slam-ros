@@ -39,7 +39,7 @@ void anloro::LandMarkSub::ProcessLandMark_cb(const apriltag_ros::AprilTagDetecti
 
         Transform transform = Transform(x, y, z, qx, qy, qz, qw);
 
-        // std::cout << "Obtained transform from april: " << x << " " << y << " " << z << std::endl;
+        std::cout << "INFO: Obtained transform from april: " << x << ", " << y << ", " << z << std::endl;
         // std::cout << "Relative transform: " << std::endl;
         Transform CameraToBaseTf = Transform(-0.047, 0.107, -0.069, 0.500, -0.500, 0.500, 0.500);
         // CameraToBaseTf.GetTranslationalAndEulerAngles(x, y, z, qx, qy, qz);
@@ -54,16 +54,65 @@ void anloro::LandMarkSub::ProcessLandMark_cb(const apriltag_ros::AprilTagDetecti
 
         t.GetTranslationalAndEulerAngles(x, y, z, qx, qy, qz);
         float distance = std::sqrt(x*x + y*y);
-        // std::cout << "INFO: distance to april tag " << distance << std::endl;
+        std::cout << "INFO: distance to april tag " << distance << std::endl;
+        std::cout << "INFO: x, y: (" << x << ", " << y << ")" << std::endl;
         // std::cout << "INFO: transform \n" << t.ToMatrix4f() << std::endl;
 
-        // if(abs(y) < 0.5)
+        // to test april tag
+        // -30 degrees
+        TestWithAngle(t, -0.5236);
+        // -25 degrees
+        TestWithAngle(t, -0.4363);
+        // -20 degrees
+        TestWithAngle(t, -0.3491);
+        // -15 degrees
+        TestWithAngle(t, -0.2618);
+        // -10 degrees
+        TestWithAngle(t, -0.1745);
+        // -5 degrees
+        TestWithAngle(t, -0.0873);
+        // 0 degrees
+        TestWithAngle(t, 0.0000);
+        // 5 degrees
+        TestWithAngle(t, 0.0873);
+        // 10 degrees
+        TestWithAngle(t, 0.1745);
+        // 15 degrees
+        TestWithAngle(t, 0.2618);
+        // 20 degrees
+        TestWithAngle(t, 0.3491);
+        // 25 degrees
+        TestWithAngle(t, 0.4363);
+        // 30 degrees
+        TestWithAngle(t, 0.5236);
+
         // if (true)
+        // if(abs(y) < 0.5 && distance < 8)
         if (distance < 10)
         {
-            _interface.AddLandMark(id, t, sigmaX, sigmaY, sigmaZ, sigmaRoll, sigmaPitch, sigmaYaw);
+            float fixedCov = 0.1;
+            _interface.AddLandMark(id, t, fixedCov/10, fixedCov/10, fixedCov/10, fixedCov, fixedCov, fixedCov);
         }
 
     }   
 
+}
+
+void anloro::LandMarkSub::TestWithAngle(Transform t, float angle)
+{
+    Transform rot, tNorm;
+    rot = Transform(0, 0, 0, 0, 0, angle); 
+    tNorm = rot.inverse()*t;
+    float xx, yy, bb;
+    tNorm.GetTranslationalAndEulerAngles(xx, yy, bb, bb, bb, bb);
+    // std::cout << "INFO: x, y angle " << angle*180/3.141592 << ": (" << xx << ", " << yy << ")" << std::endl;
+}
+
+bool anloro::LandMarkSub::SavePosesRaw(modular_slam::SavePosesRaw::Request  &req,
+                                       modular_slam::SavePosesRaw::Response &res)
+{
+    std::string name = req.name; 
+    _interface.SavePosesRaw(name);
+    res.response = "Raw poses saved to " + name;
+    return true;
 }

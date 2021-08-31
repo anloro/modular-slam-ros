@@ -1,32 +1,46 @@
 /**
- * @file   OdometrySub_drifted.cpp
+ * @file   OdometrySub_driftedv2.cpp
  * @brief  Defines the Odometry ros interface with the modular slam framework.
  * @author Ángel Lorente Rogel
  * @date   15/06/2021
  */
 
-#include "OdometrySub_drifted.h"
+#include "OdometrySub_driftedv2.h"
 #include <string>
 
 
-int anloro::OdometrySub_drifted::_previousId;
-int anloro::OdometrySub_drifted::_currentId = 0;
-float anloro::OdometrySub_drifted::_lastKeyFrameTime = 0;
-float anloro::OdometrySub_drifted::_xBias = 0;
-float anloro::OdometrySub_drifted::_yawBias = 0;
-anloro::Transform anloro::OdometrySub_drifted::_lastKeyFramePose;
-anloro::Transform anloro::OdometrySub_drifted::_lastKeyFramePoseDrifted;
-anloro::Transform anloro::OdometrySub_drifted::_lastOdomPose;
-anloro::Transform anloro::OdometrySub_drifted::_lastOdomPoseDrifted;
-anloro::WorldModelInterface anloro::OdometrySub_drifted::_interface = anloro::WorldModelInterface();
+// int anloro::OdometrySub_driftedv2::_previousId;
+// int anloro::OdometrySub_driftedv2::_currentId = 0;
+// float anloro::OdometrySub_driftedv2::_lastKeyFrameTime = 0;
+// float anloro::OdometrySub_driftedv2::_xBias = 0;
+// float anloro::OdometrySub_driftedv2::_yawBias = 0;
+// anloro::Transform anloro::OdometrySub_driftedv2::_lastKeyFramePose;
+// anloro::Transform anloro::OdometrySub_driftedv2::_lastKeyFramePoseDrifted;
+// anloro::Transform anloro::OdometrySub_driftedv2::_lastOdomPose;
+// anloro::Transform anloro::OdometrySub_driftedv2::_lastOdomPoseDrifted;
+// anloro::WorldModelInterface anloro::OdometrySub_driftedv2::_interface = anloro::WorldModelInterface();
+// ros::Publisher anloro::OdometrySub_driftedv2::_pub;
+// ros::NodeHandle anloro::OdometrySub_driftedv2::_n;
 
-void anloro::OdometrySub_drifted::UpdateId()
+anloro::OdometrySub_driftedv2::OdometrySub_driftedv2(){
+    _currentId = 0;
+    _lastKeyFrameTime = 0;
+    _xBias = 0;
+    _yawBias = 0;
+    // to publish the drifted odometry
+    pub_ = n_.advertise<nav_msgs::Odometry>("/odom_drifted", 1000);
+
+    sub_ = n_.subscribe("/odom", 1000, &anloro::OdometrySub_driftedv2::ProcessOdom_cb, this);
+    serv_ = n_.advertiseService("save_poses_raw", &anloro::OdometrySub_driftedv2::SavePosesRaw, this);
+}
+
+void anloro::OdometrySub_driftedv2::UpdateId()
 {
     _previousId = _currentId;
     _currentId++;
 }
 
-void anloro::OdometrySub_drifted::ProcessOdom_cb(const nav_msgs::Odometry::ConstPtr& msg)
+void anloro::OdometrySub_driftedv2::ProcessOdom_cb(const nav_msgs::Odometry::ConstPtr& msg)
 {
 
     float currentTimeStamp = msg->header.stamp.toSec();
@@ -108,9 +122,10 @@ void anloro::OdometrySub_drifted::ProcessOdom_cb(const nav_msgs::Odometry::Const
         // Compute the drift proportional to the differential displacement
         float yawRelBias = 0;
         Transform keyFramePoseDrifted;
-        if (relYaw > 0 || relYaw < 0)
+        if (relYaw > 0)
         {
-            yawRelBias = relYaw * 0.01;
+            // yawRelBias = relYaw * 0.4;
+            yawRelBias = 0.01;
             // Apply the drift to the relative transform
             relTransform.SetEulerAngles(relRoll, relPitch, relYaw + yawRelBias);
 
@@ -166,10 +181,74 @@ void anloro::OdometrySub_drifted::ProcessOdom_cb(const nav_msgs::Odometry::Const
             //     std::cout << "INFO: Variances set to DEFAULT" << std::endl;
             // }
 
-            if(abs(relYaw + yawRelBias) > 0.1){
-                _interface.AddPoseConstraint(_previousId, _currentId, relTransform, 1, 1, 1, 1, 1, 1);
+            if(relYaw > 0){
+                float fixedCov = 0.1;
+                _interface.AddPoseConstraint(_previousId, _currentId, relTransform, 
+                                             fixedCov, fixedCov, fixedCov, fixedCov, fixedCov, fixedCov);
+
+                nav_msgs::Odometry odom_output;
+                odom_output.header.stamp = msg->header.stamp;
+                odom_output.header.frame_id = "odom_drifted";
+                // odom_output.header.frame_id = msg->header.frame_id;
+                odom_output.pose.pose.position.x = keyFramePoseDrifted.X();
+                odom_output.pose.pose.position.y = keyFramePoseDrifted.Y();
+                odom_output.pose.pose.position.z = keyFramePoseDrifted.Z();
+                geometry_msgs::Quaternion quaternion;
+                Eigen::Quaternionf q_out = Eigen::Quaternionf(keyFramePoseDrifted.GetAffineTransform().linear()).normalized();
+                quaternion.x = q_out.x();
+                quaternion.y = q_out.y();
+                quaternion.z = q_out.z();
+                quaternion.w = q_out.w();
+                odom_output.pose.pose.orientation = quaternion;
+                odom_output.pose.covariance[0] = fixedCov;
+                odom_output.pose.covariance[7] = fixedCov;
+                odom_output.pose.covariance[14] = fixedCov;
+                odom_output.pose.covariance[21] = fixedCov;
+                odom_output.pose.covariance[28] = fixedCov;
+                odom_output.pose.covariance[35] = fixedCov;
+
+                odom_output.child_frame_id = msg->child_frame_id;
+                odom_output.twist.twist.linear.x = 0;
+                odom_output.twist.twist.linear.y = 0;
+                odom_output.twist.twist.angular.z = 0;
+                odom_output.twist.covariance = msg->twist.covariance;
+
+                pub_.publish(odom_output);
+
             }else{
-                _interface.AddPoseConstraint(_previousId, _currentId, relTransform, 0.0001, 0.0001, 0.0001, 0.001, 0.001, 0.001);
+                float fixedCov = 0.1;
+                // float fixedCov = 0.001;
+                _interface.AddPoseConstraint(_previousId, _currentId, relTransform,
+                                             fixedCov/10, fixedCov/10, fixedCov/10, fixedCov, fixedCov, fixedCov);
+
+                nav_msgs::Odometry odom_output;
+                odom_output.header.stamp = msg->header.stamp;
+                odom_output.header.frame_id = "odom_drifted";
+                // odom_output.header.frame_id = msg->header.frame_id;
+                odom_output.pose.pose.position.x = keyFramePoseDrifted.X();
+                odom_output.pose.pose.position.y = keyFramePoseDrifted.Y();
+                odom_output.pose.pose.position.z = keyFramePoseDrifted.Z();
+                geometry_msgs::Quaternion quaternion;
+                Eigen::Quaternionf q_out = Eigen::Quaternionf(keyFramePoseDrifted.GetAffineTransform().linear()).normalized();
+                quaternion.x = q_out.x();
+                quaternion.y = q_out.y();
+                quaternion.z = q_out.z();
+                quaternion.w = q_out.w();
+                odom_output.pose.pose.orientation = quaternion;
+                odom_output.pose.covariance[0] = fixedCov/10;
+                odom_output.pose.covariance[7] = fixedCov/10;
+                odom_output.pose.covariance[14] = fixedCov/10;
+                odom_output.pose.covariance[21] = fixedCov;
+                odom_output.pose.covariance[28] = fixedCov;
+                odom_output.pose.covariance[35] = fixedCov;
+
+                odom_output.child_frame_id = msg->child_frame_id;
+                odom_output.twist.twist.linear.x = 0;
+                odom_output.twist.twist.linear.y = 0;
+                odom_output.twist.twist.angular.z = 0;
+                odom_output.twist.covariance = msg->twist.covariance;
+
+                pub_.publish(odom_output);
             }
 
             // _interface.AddPoseConstraint(_previousId, _currentId, relTransform, 0.0001, 0.0001, 0.0001, 0.001, 0.001, 0.001);
@@ -186,7 +265,7 @@ void anloro::OdometrySub_drifted::ProcessOdom_cb(const nav_msgs::Odometry::Const
     }
 }
 
-bool anloro::OdometrySub_drifted::SavePosesRaw(modular_slam::SavePosesRaw::Request  &req,
+bool anloro::OdometrySub_driftedv2::SavePosesRaw(modular_slam::SavePosesRaw::Request  &req,
                                        modular_slam::SavePosesRaw::Response &res)
 {
     std::string name = req.name; 
