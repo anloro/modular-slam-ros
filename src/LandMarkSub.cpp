@@ -39,7 +39,7 @@ void anloro::LandMarkSub::ProcessLandMark_cb(const apriltag_ros::AprilTagDetecti
 
         Transform transform = Transform(x, y, z, qx, qy, qz, qw);
 
-        std::cout << "INFO: Obtained transform from april: " << x << ", " << y << ", " << z << std::endl;
+        // std::cout << "INFO: Obtained transform from april: " << x << ", " << y << ", " << z << std::endl;
         // std::cout << "Relative transform: " << std::endl;
         Transform CameraToBaseTf = Transform(-0.047, 0.107, -0.069, 0.500, -0.500, 0.500, 0.500);
         // CameraToBaseTf.GetTranslationalAndEulerAngles(x, y, z, qx, qy, qz);
@@ -54,8 +54,8 @@ void anloro::LandMarkSub::ProcessLandMark_cb(const apriltag_ros::AprilTagDetecti
 
         t.GetTranslationalAndEulerAngles(x, y, z, qx, qy, qz);
         float distance = std::sqrt(x*x + y*y);
-        std::cout << "INFO: distance to april tag " << distance << std::endl;
-        std::cout << "INFO: x, y: (" << x << ", " << y << ")" << std::endl;
+        std::cout << "INFO: distance to april tag " << id << ": " << distance << std::endl;
+        // std::cout << "INFO: Tag id " << id << " x, y: (" << x << ", " << y << ")" << std::endl;
         // std::cout << "INFO: transform \n" << t.ToMatrix4f() << std::endl;
 
         // to test april tag
@@ -88,7 +88,12 @@ void anloro::LandMarkSub::ProcessLandMark_cb(const apriltag_ros::AprilTagDetecti
 
         // if (true)
         // if(abs(y) < 0.5 && distance < 8)
-        if (distance < 10)
+        if (id != 3)
+        {
+            float fixedCov = 0.1;
+            _interface.AddLandMark(id, t, fixedCov/10, fixedCov/10, fixedCov/10, fixedCov, fixedCov, fixedCov);
+        }
+        else if (distance < 7 && id == 3)
         {
             float fixedCov = 0.1;
             _interface.AddLandMark(id, t, fixedCov/10, fixedCov/10, fixedCov/10, fixedCov, fixedCov, fixedCov);

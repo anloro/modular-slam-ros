@@ -1,6 +1,6 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
-#include "OdometrySub_driftedv2.h"
+#include "OdometrySub_drifted.h"
 #include "LandMarkSub.h"
 
 
@@ -16,7 +16,7 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
 
   // Create the interface to the modular slam framework
-  anloro::OdometrySub_driftedv2 odomSub;
+  anloro::OdometrySub_drifted odomSub;
 
   anloro::LandMarkSub landMarkSub;
 

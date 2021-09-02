@@ -145,8 +145,8 @@ add_executable(${PROJECT_NAME}_odomWithLm_processor
 add_executable(${PROJECT_NAME}_odomWithLm_processor_drifted
 
   src/odomWithLm_processor_drifted.cpp
-  src/OdometrySub_driftedv2.h
-  src/OdometrySub_driftedv2.cpp
+  src/OdometrySub_drifted.h
+  src/OdometrySub_drifted.cpp
   src/LandMarkSub.h
   src/LandMarkSub.cpp
 )
@@ -155,8 +155,8 @@ add_executable(${PROJECT_NAME}_odomWithLm_processor_drifted
 add_executable(${PROJECT_NAME}_odomDrift_processor 
 
   src/odom_processor_drifted.cpp
-  src/OdometrySub_driftedv2.h
-  src/OdometrySub_driftedv2.cpp
+  src/OdometrySub_drifted.h
+  src/OdometrySub_drifted.cpp
 )
 
 add_executable(${PROJECT_NAME}_odom_processor 

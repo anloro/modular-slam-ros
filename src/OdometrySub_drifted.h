@@ -10,6 +10,7 @@
 #include "nav_msgs/Odometry.h"
 #include "/usr/local/include/modularslam/WorldModelInterface.h"
 #include "modular_slam/SavePosesRaw.h"
+#include <ros/ros.h>
 
 namespace anloro{
 
@@ -17,21 +18,28 @@ class OdometrySub_drifted
 {
 public:
     // Constructor
-    OdometrySub_drifted() = default;
+    OdometrySub_drifted();
 
     // Member functions
-    static void UpdateId();
-    static void ProcessOdom_cb(const nav_msgs::Odometry::ConstPtr& msg);
-    static bool SavePosesRaw(modular_slam::SavePosesRaw::Request  &req,
+    void UpdateId();
+    void ProcessOdom_cb(const nav_msgs::Odometry::ConstPtr& msg);
+    bool SavePosesRaw(modular_slam::SavePosesRaw::Request  &req,
                              modular_slam::SavePosesRaw::Response &res);
 
 protected:
-    static WorldModelInterface _interface;
-    static int _currentId;
-    static int _previousId;
-    static Transform _lastKeyFramePose, _lastKeyFramePoseDrifted, _lastOdomPose, _lastOdomPoseDrifted;
-    static float _lastKeyFrameTime;
-    static float _xBias, _yawBias;
+    WorldModelInterface _interface;
+    int _currentId;
+    int _previousId;
+    Transform _lastKeyFramePose, _lastKeyFramePoseDrifted, _lastOdomPose, _lastOdomPoseDrifted;
+    float _lastKeyFrameTime;
+    float _xBias, _yawBias;
+
+private:
+    ros::Publisher pub_;
+    ros::NodeHandle n_; 
+    ros::Subscriber sub_; 
+    ros::ServiceServer serv_;
+
 };
 
 } // namespace anloro

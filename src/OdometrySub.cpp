@@ -78,7 +78,7 @@ void anloro::OdometrySub::ProcessOdom_cb(const nav_msgs::Odometry::ConstPtr& msg
 
         if (_currentId == 0) // Just for the inizialization
         {
-            _interface.AddKeyFrame(_currentId, transform);
+            _interface.AddKeyFrame(currentTimeStamp, _currentId, transform);
             _lastOdomPose = transform;
             _lastOdomTime = currentTimeStamp;
             UpdateId();
@@ -106,7 +106,7 @@ void anloro::OdometrySub::ProcessOdom_cb(const nav_msgs::Odometry::ConstPtr& msg
 
                 _interface.AddPoseConstraint(_previousId, _currentId, relTransform, sigmaX, sigmaY, sigmaZ, sigmaRoll, sigmaPitch, sigmaYaw);
                 // _interface.AddPoseConstraint(_previousId, _currentId, transform, sigmaX, sigmaY, sigmaZ, sigmaRoll, sigmaPitch, sigmaYaw);
-                _interface.AddKeyFrame(_currentId, transform);
+                _interface.AddKeyFrame(currentTimeStamp, _currentId, transform);
                 _lastOdomPose = transform;
                 _lastOdomTime = currentTimeStamp;
                 UpdateId();
