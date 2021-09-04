@@ -5,7 +5,7 @@
   <arg name="z_pos" default="0.0"/>
   <!-- <arg name="yaw" default="1.5707963267949"/> -->
   <arg name="yaw" default="0"/>
-  <arg name="world" default="worldv3" doc="model type [worldv3, worldv2, willow_with_tags, house_with_tags]"/>
+  <arg name="world" default="worldv4" doc="model type [worldv3, worldv2, willow_with_tags, house_with_tags]"/>
   <arg name="multi_robot_name" default=""/>
 
 <!-- Gazebo -->

@@ -181,75 +181,38 @@ void anloro::OdometrySub_drifted::ProcessOdom_cb(const nav_msgs::Odometry::Const
             //     std::cout << "INFO: Variances set to DEFAULT" << std::endl;
             // }
 
-            if(relYaw > 0){
-                float fixedCov = 0.1;
-                _interface.AddPoseConstraint(_previousId, _currentId, relTransform, 
-                                             fixedCov, fixedCov, fixedCov, fixedCov, fixedCov, fixedCov);
+            float fixedCov = 0.1;
+            _interface.AddPoseConstraint(_previousId, _currentId, relTransform, 
+                                            fixedCov, fixedCov, fixedCov, fixedCov, fixedCov, fixedCov);
 
-                nav_msgs::Odometry odom_output;
-                odom_output.header.stamp = msg->header.stamp;
-                odom_output.header.frame_id = "odom_drifted";
-                // odom_output.header.frame_id = msg->header.frame_id;
-                odom_output.pose.pose.position.x = keyFramePoseDrifted.X();
-                odom_output.pose.pose.position.y = keyFramePoseDrifted.Y();
-                odom_output.pose.pose.position.z = keyFramePoseDrifted.Z();
-                geometry_msgs::Quaternion quaternion;
-                Eigen::Quaternionf q_out = Eigen::Quaternionf(keyFramePoseDrifted.GetAffineTransform().linear()).normalized();
-                quaternion.x = q_out.x();
-                quaternion.y = q_out.y();
-                quaternion.z = q_out.z();
-                quaternion.w = q_out.w();
-                odom_output.pose.pose.orientation = quaternion;
-                odom_output.pose.covariance[0] = fixedCov/10;
-                odom_output.pose.covariance[7] = fixedCov/10;
-                odom_output.pose.covariance[14] = fixedCov/10;
-                odom_output.pose.covariance[21] = fixedCov;
-                odom_output.pose.covariance[28] = fixedCov;
-                odom_output.pose.covariance[35] = fixedCov;
+            nav_msgs::Odometry odom_output;
+            odom_output.header.stamp = msg->header.stamp;
+            odom_output.header.frame_id = "odom_drifted";
+            // odom_output.header.frame_id = msg->header.frame_id;
+            odom_output.pose.pose.position.x = keyFramePoseDrifted.X();
+            odom_output.pose.pose.position.y = keyFramePoseDrifted.Y();
+            odom_output.pose.pose.position.z = keyFramePoseDrifted.Z();
+            geometry_msgs::Quaternion quaternion;
+            Eigen::Quaternionf q_out = Eigen::Quaternionf(keyFramePoseDrifted.GetAffineTransform().linear()).normalized();
+            quaternion.x = q_out.x();
+            quaternion.y = q_out.y();
+            quaternion.z = q_out.z();
+            quaternion.w = q_out.w();
+            odom_output.pose.pose.orientation = quaternion;
+            odom_output.pose.covariance[0] = fixedCov/10;
+            odom_output.pose.covariance[7] = fixedCov/10;
+            odom_output.pose.covariance[14] = fixedCov/10;
+            odom_output.pose.covariance[21] = fixedCov;
+            odom_output.pose.covariance[28] = fixedCov;
+            odom_output.pose.covariance[35] = fixedCov;
 
-                odom_output.child_frame_id = msg->child_frame_id;
-                odom_output.twist.twist.linear.x = 0;
-                odom_output.twist.twist.linear.y = 0;
-                odom_output.twist.twist.angular.z = 0;
-                odom_output.twist.covariance = msg->twist.covariance;
+            odom_output.child_frame_id = msg->child_frame_id;
+            odom_output.twist.twist.linear.x = 0;
+            odom_output.twist.twist.linear.y = 0;
+            odom_output.twist.twist.angular.z = 0;
+            odom_output.twist.covariance = msg->twist.covariance;
 
-                pub_.publish(odom_output);
-
-            }else{
-                float fixedCov = 0.1;
-                // float fixedCov = 0.001;
-                _interface.AddPoseConstraint(_previousId, _currentId, relTransform,
-                                             fixedCov/10, fixedCov/10, fixedCov/10, fixedCov, fixedCov, fixedCov);
-
-                nav_msgs::Odometry odom_output;
-                odom_output.header.stamp = msg->header.stamp;
-                odom_output.header.frame_id = "odom_drifted";
-                // odom_output.header.frame_id = msg->header.frame_id;
-                odom_output.pose.pose.position.x = keyFramePoseDrifted.X();
-                odom_output.pose.pose.position.y = keyFramePoseDrifted.Y();
-                odom_output.pose.pose.position.z = keyFramePoseDrifted.Z();
-                geometry_msgs::Quaternion quaternion;
-                Eigen::Quaternionf q_out = Eigen::Quaternionf(keyFramePoseDrifted.GetAffineTransform().linear()).normalized();
-                quaternion.x = q_out.x();
-                quaternion.y = q_out.y();
-                quaternion.z = q_out.z();
-                quaternion.w = q_out.w();
-                odom_output.pose.pose.orientation = quaternion;
-                odom_output.pose.covariance[0] = fixedCov/10;
-                odom_output.pose.covariance[7] = fixedCov/10;
-                odom_output.pose.covariance[14] = fixedCov/10;
-                odom_output.pose.covariance[21] = fixedCov;
-                odom_output.pose.covariance[28] = fixedCov;
-                odom_output.pose.covariance[35] = fixedCov;
-
-                odom_output.child_frame_id = msg->child_frame_id;
-                odom_output.twist.twist.linear.x = 0;
-                odom_output.twist.twist.linear.y = 0;
-                odom_output.twist.twist.angular.z = 0;
-                odom_output.twist.covariance = msg->twist.covariance;
-
-                pub_.publish(odom_output);
-            }
+            pub_.publish(odom_output);
 
             // _interface.AddPoseConstraint(_previousId, _currentId, relTransform, 0.0001, 0.0001, 0.0001, 0.001, 0.001, 0.001);
 
