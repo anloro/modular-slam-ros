@@ -11,8 +11,8 @@
 
 int anloro::OdometrySub::_previousId;
 int anloro::OdometrySub::_currentId = 0;
-float anloro::OdometrySub::_lastOdomTime = 0;
-anloro::Transform anloro::OdometrySub::_lastOdomPose;
+float anloro::OdometrySub::_lastKeyFrameTime = 0;
+anloro::Transform anloro::OdometrySub::_lastKeyFramePose;
 anloro::WorldModelInterface anloro::OdometrySub::_interface = anloro::WorldModelInterface();
 
 void anloro::OdometrySub::UpdateId()
@@ -28,7 +28,7 @@ void anloro::OdometrySub::ProcessOdom_cb(const nav_msgs::Odometry::ConstPtr& msg
     float timeThresh = 1;
 
     float x, y, z, qx, qy, qz, qw, sigmaX, sigmaY, sigmaZ, sigmaRoll, sigmaPitch, sigmaYaw;
-    // Get the pose information 
+    // Get the pose information in global coordinates
     x = msg->pose.pose.position.x;
     y = msg->pose.pose.position.y;
     z = msg->pose.pose.position.z;
@@ -46,71 +46,40 @@ void anloro::OdometrySub::ProcessOdom_cb(const nav_msgs::Odometry::ConstPtr& msg
 
     Transform transform = Transform(x, y, z, qx, qy, qz, qw);
 
-    _interface.SetCurrentState(transform);
-    // Check condition of a certain time difference between odom nodes
-    if(abs(_lastOdomTime - currentTimeStamp) > timeThresh)
+    // _interface.SetCurrentState(transform);
+
+    if (_currentId == 0) // Just for the inizialization
     {
-        
-        // std::cout << "Current time stamp: " << currentTimeStamp << std::endl;
-        // std::cout << "Last time stamp: " << _lastOdomTime << std::endl;
+        _interface.AddKeyFrame(currentTimeStamp, _currentId, transform);
+        _lastKeyFramePose = transform.Clone();
+        _lastKeyFrameTime = currentTimeStamp;
+        UpdateId();
 
-        // float x, y, z, qx, qy, qz, qw, sigmaX, sigmaY, sigmaZ, sigmaRoll, sigmaPitch, sigmaYaw;
-        // // Get the pose information 
-        // x = msg->pose.pose.position.x;
-        // y = msg->pose.pose.position.y;
-        // z = msg->pose.pose.position.z;
-        // qx = msg->pose.pose.orientation.x;
-        // qy = msg->pose.pose.orientation.y;
-        // qz = msg->pose.pose.orientation.z;
-        // qw = msg->pose.pose.orientation.w;
-        // // Get the covariance information [row*6 + row]
-        // sigmaX = msg->pose.covariance[0];
-        // sigmaY = msg->pose.covariance[7];
-        // sigmaZ = msg->pose.covariance[14];
-        // sigmaRoll = msg->pose.covariance[21];
-        // sigmaPitch = msg->pose.covariance[28];
-        // sigmaYaw = msg->pose.covariance[35];
+    }else 
+    {     
+        // Compute the relative transform between odom poses without the drift
+        Transform relTransform = Transform(_lastKeyFramePose.inverse().ToMatrix4f() * transform.ToMatrix4f());
+        float relRoll, relPitch, relYaw;
+        relTransform.GetEulerAngles(relRoll, relPitch, relYaw);
+        // std::cout << "INFO: Current relYaw is " << relYaw << " [rad]" << std::endl;
 
-        // Transform transform = Transform(x, y, z, qx, qy, qz, qw);
-
-        // std::cout << "Previous id: " << _previousId << std::endl;
-        // std::cout << "Current id: " << _currentId << std::endl;
-
-        if (_currentId == 0) // Just for the inizialization
+        // Check if the robot moved a certain distance from the previous odom node
+        // if (distance > 0.2 && abs(_lastKeyFrameTime - currentTimeStamp) > timeThresh)
+        // Check condition of a certain time difference between odom nodes
+        if(abs(_lastKeyFrameTime - currentTimeStamp) > timeThresh)
         {
-            _interface.AddKeyFrame(currentTimeStamp, _currentId, transform);
-            _lastOdomPose = transform;
-            _lastOdomTime = currentTimeStamp;
+            std::cout << "INFO: Added node with ID " << _currentId << " GT: \n" << transform.ToMatrix4f() << std::endl;
+
+            Transform keyFramePose = _lastKeyFramePose * relTransform;
+
+            float fixedCov = 0.00001;
+            _interface.AddPoseConstraint(_previousId, _currentId, relTransform, 
+                                            fixedCov/10, fixedCov/10, fixedCov/10, fixedCov, fixedCov, fixedCov);
+            _interface.AddKeyFrame(currentTimeStamp, _currentId, keyFramePose);
+
+            _lastKeyFramePose = Transform(x, y, z, qx, qy, qz, qw);
+            _lastKeyFrameTime = currentTimeStamp;
             UpdateId();
-
-        }else 
-        {
-            // Transform relTransform = Transform(_lastOdomPose.inverse().ToMatrix4f() * transform.ToMatrix4f());
-            Transform relTransform = Transform(transform.ToMatrix4f() * _lastOdomPose.inverse().ToMatrix4f());
-
-            float x, y, dummyData;
-            relTransform.GetTranslationalAndEulerAngles(x, y ,dummyData, dummyData, dummyData, dummyData);
-            float distance = std::sqrt(x*x + y*y);
-
-            // Check if the robot moved a certain distance from the previous odom node
-            // if (distance > 0.2)
-            if (true)
-            {
-                // std::cout << "Previous Transform: \n" << _lastOdomPose.ToMatrix4f() << std::endl;
-                // std::cout << "Transform: \n" << transform.ToMatrix4f() << std::endl;
-
-                // std::cout << "Relative transform: \n" << std::endl;
-                // relTransform = Transform(transform.ToMatrix4f() * _lastOdomPose.inverse().ToMatrix4f());
-                // std::cout << "transform * lastOdom.inv(): \n" << relTransform.ToMatrix4f() << std::endl;
-                // std::cout << " " << std::endl;
-
-                _interface.AddPoseConstraint(_previousId, _currentId, relTransform, sigmaX, sigmaY, sigmaZ, sigmaRoll, sigmaPitch, sigmaYaw);
-                // _interface.AddPoseConstraint(_previousId, _currentId, transform, sigmaX, sigmaY, sigmaZ, sigmaRoll, sigmaPitch, sigmaYaw);
-                _interface.AddKeyFrame(currentTimeStamp, _currentId, transform);
-                _lastOdomPose = transform;
-                _lastOdomTime = currentTimeStamp;
-                UpdateId();
-            }
         }
     }
 

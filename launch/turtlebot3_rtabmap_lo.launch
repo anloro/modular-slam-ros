@@ -83,7 +83,11 @@
          <param name="Vis/MaxFeatures" type="string" value="500"/>
          <param name="Vis/MaxDepth" type="string" value="0"/> 
 
-        <param name="Optimizer/Iterations" type="string" value="0"/> 
+        <param name="Optimizer/Iterations" type="string" value="1"/> 
+        <!-- Try to avoid the apriltag detection -->
+        <!-- <param name="Marker/CornerRefinementMethod" type="string" value="0"/> 
+        <param name="Marker/Dictionary" type="string" value="0"/> 
+        <param name="RGBD/MarkerDetection" type="string" value="false"/>  -->
 
     </node>
 

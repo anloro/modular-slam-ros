@@ -29,8 +29,8 @@ protected:
     static WorldModelInterface _interface;
     static int _currentId;
     static int _previousId;
-    static Transform _lastOdomPose;
-    static float _lastOdomTime;
+    static Transform _lastKeyFramePose;
+    static float _lastKeyFrameTime;
 };
 
 } // namespace anloro

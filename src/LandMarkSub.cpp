@@ -55,36 +55,16 @@ void anloro::LandMarkSub::ProcessLandMark_cb(const apriltag_ros::AprilTagDetecti
         t.GetTranslationalAndEulerAngles(x, y, z, qx, qy, qz);
         float distance = std::sqrt(x*x + y*y);
         std::cout << "INFO: distance to april tag " << id << ": " << distance << std::endl;
-        // std::cout << "INFO: Tag id " << id << " x, y: (" << x << ", " << y << ")" << std::endl;
+        std::cout << "INFO: Tag id " << id << " x, y: (" << x << ", " << y << ")" << std::endl;
         // std::cout << "INFO: transform \n" << t.ToMatrix4f() << std::endl;
 
-        // to test april tag
-        // -30 degrees
-        TestWithAngle(t, -0.5236);
-        // -25 degrees
-        TestWithAngle(t, -0.4363);
-        // -20 degrees
-        TestWithAngle(t, -0.3491);
-        // -15 degrees
-        TestWithAngle(t, -0.2618);
-        // -10 degrees
-        TestWithAngle(t, -0.1745);
-        // -5 degrees
-        TestWithAngle(t, -0.0873);
-        // 0 degrees
-        TestWithAngle(t, 0.0000);
-        // 5 degrees
-        TestWithAngle(t, 0.0873);
-        // 10 degrees
-        TestWithAngle(t, 0.1745);
-        // 15 degrees
-        TestWithAngle(t, 0.2618);
-        // 20 degrees
-        TestWithAngle(t, 0.3491);
-        // 25 degrees
-        TestWithAngle(t, 0.4363);
-        // 30 degrees
-        TestWithAngle(t, 0.5236);
+        // Test the april tag detection in different angles
+        // -30 -25 -20 -15 -10 -5 0 5 10 15 20 25 30 [degrees]
+        // std::array<float, 13> angles = {-0.5236, -0.4363, -0.3491, -0.2618, -0.1745, -0.0873, 
+        //                                 0.0000, 0.0873, 0.1745, 0.2618, 0.3491, 0.4363, 0.5236};
+        // for (float &angleRads : angles){
+        //     TestWithAngle(t, angleRads);
+        // }
 
         // if (true)
         // if(abs(y) < 0.5 && distance < 8)
