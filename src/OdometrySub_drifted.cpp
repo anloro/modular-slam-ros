@@ -69,16 +69,65 @@ void anloro::OdometrySub_drifted::ProcessOdom_cb(const nav_msgs::Odometry::Const
 
     if (_currentId == 0) // Just for the inizialization
     {
+        float fixedCov = 0.0001;
+
+        nav_msgs::Odometry odom_output;
+        odom_output.header.stamp = msg->header.stamp;
+        odom_output.header.frame_id = "odom_drifted";
+        odom_output.pose.pose.position.x = x;
+        odom_output.pose.pose.position.y = y;
+        odom_output.pose.pose.position.z = z;
+        odom_output.pose.pose.orientation = msg->pose.pose.orientation;
+        odom_output.pose.covariance[0] = fixedCov;
+        odom_output.pose.covariance[7] = fixedCov;
+        odom_output.pose.covariance[14] = fixedCov;
+        odom_output.pose.covariance[21] = fixedCov/10;
+        odom_output.pose.covariance[28] = fixedCov/10;
+        odom_output.pose.covariance[35] = fixedCov/10;
+
+        odom_output.child_frame_id = msg->child_frame_id;
+        odom_output.twist.twist = msg->twist.twist;
+        odom_output.twist.covariance = msg->twist.covariance;
+
+        pub_.publish(odom_output);
+
         _interface.AddKeyFrame(currentTimeStamp, _currentId, transform);
         _lastKeyFramePose = transform.Clone();
         _lastKeyFramePoseDrifted = transform.Clone();
-        _lastOdomPose = transform.Clone();
-        _lastOdomPoseDrifted = transform.Clone();
         _lastKeyFrameTime = currentTimeStamp;
         UpdateId();
 
-    }else 
-    {     
+    // } else if(_currentId < 1000 && abs(_lastKeyFrameTime - currentTimeStamp) > timeThresh){
+        
+    //     float fixedCov = 0.00001;
+
+    //     nav_msgs::Odometry odom_output;
+    //     odom_output.header.stamp = msg->header.stamp;
+    //     odom_output.header.frame_id = "odom_drifted";
+    //     odom_output.pose.pose.position.x = x;
+    //     odom_output.pose.pose.position.y = y;
+    //     odom_output.pose.pose.position.z = z;
+    //     odom_output.pose.pose.orientation = msg->pose.pose.orientation;
+    //     odom_output.pose.covariance[0] = fixedCov/10;
+    //     odom_output.pose.covariance[7] = fixedCov/10;
+    //     odom_output.pose.covariance[14] = fixedCov/10;
+    //     odom_output.pose.covariance[21] = fixedCov;
+    //     odom_output.pose.covariance[28] = fixedCov;
+    //     odom_output.pose.covariance[35] = fixedCov;
+
+    //     odom_output.child_frame_id = msg->child_frame_id;
+    //     odom_output.twist.twist = msg->twist.twist;
+    //     odom_output.twist.covariance = msg->twist.covariance;
+
+    //     pub_.publish(odom_output);
+
+    //     // _interface.AddKeyFrame(currentTimeStamp, _currentId, transform);
+    //     _lastKeyFramePose = transform.Clone();
+    //     _lastKeyFramePoseDrifted = transform.Clone();
+    //     _lastKeyFrameTime = currentTimeStamp;
+    //     UpdateId();
+
+    } else {     
         // Compute the relative transform between odom poses without the drift
         Transform relTransform = Transform(_lastKeyFramePose.inverse().ToMatrix4f() * transform.ToMatrix4f());
         float relRoll, relPitch, relYaw;
@@ -111,9 +160,9 @@ void anloro::OdometrySub_drifted::ProcessOdom_cb(const nav_msgs::Odometry::Const
             // to obtain the new drifted odom pose
             Transform keyFramePoseDrifted = _lastKeyFramePoseDrifted * relTransform;
 
-            float fixedCov = 0.01;
+            float fixedCov = 0.0001;
             _interface.AddPoseConstraint(_previousId, _currentId, relTransform, 
-                                            fixedCov/10, fixedCov/10, fixedCov/10, fixedCov, fixedCov, fixedCov);
+                                            fixedCov, fixedCov, fixedCov, fixedCov/10, fixedCov/10, fixedCov/10 + yawRelBias);
             _interface.AddKeyFrame(currentTimeStamp, _currentId, keyFramePoseDrifted);
 
             nav_msgs::Odometry odom_output;
@@ -130,17 +179,18 @@ void anloro::OdometrySub_drifted::ProcessOdom_cb(const nav_msgs::Odometry::Const
             quaternion.z = q_out.z();
             quaternion.w = q_out.w();
             odom_output.pose.pose.orientation = quaternion;
-            odom_output.pose.covariance[0] = fixedCov/10;
-            odom_output.pose.covariance[7] = fixedCov/10;
-            odom_output.pose.covariance[14] = fixedCov/10;
-            odom_output.pose.covariance[21] = fixedCov;
-            odom_output.pose.covariance[28] = fixedCov;
-            odom_output.pose.covariance[35] = fixedCov;
+            odom_output.pose.covariance[0] = fixedCov;
+            odom_output.pose.covariance[7] = fixedCov;
+            odom_output.pose.covariance[14] = fixedCov;
+            odom_output.pose.covariance[21] = fixedCov/10;
+            odom_output.pose.covariance[28] = fixedCov/10;
+            odom_output.pose.covariance[35] = fixedCov/10 + yawRelBias;
 
             odom_output.child_frame_id = msg->child_frame_id;
-            odom_output.twist.twist.linear.x = 0;
-            odom_output.twist.twist.linear.y = 0;
-            odom_output.twist.twist.angular.z = 0;
+            // odom_output.twist.twist.linear.x = msg->twist.twist.linear.x;
+            // odom_output.twist.twist.linear.y = msg->twist.twist.linear.y;
+            // odom_output.twist.twist.angular.z = msg->twist.twist.linear.z;
+            odom_output.twist.twist = msg->twist.twist;
             odom_output.twist.covariance = msg->twist.covariance;
 
             pub_.publish(odom_output);
